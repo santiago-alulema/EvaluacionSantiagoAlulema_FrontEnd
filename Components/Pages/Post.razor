@@ -1,0 +1,81 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using EvaluacionSantiagoAlulema_Front.Components.services
+@inject TitlesApi Api
+
+
+<PageTitle>Home</PageTitle>
+
+<h1>BIENVENIDO</h1>
+<h2>VER LISTADO DE TITULOS POR UserId</h2>
+
+<div style="display:flex; gap:12px; align-items:end; flex-wrap:wrap; margin-top:12px;">
+    <div>
+        <label for="userId">UserId</label><br />
+        <input id="userId" type="number" min="1" @bind="userId" />
+    </div>
+
+    <button class="btn btn-primary" @onclick="@Consultar">Consultar</button>
+
+    <button class="btn btn-primary" @onclick="Sincronizar" disabled="@isLoading">Sincronizar datos</button>
+</div>
+@if (!string.IsNullOrWhiteSpace(syncMessage))
+{
+    <p style="color:green; margin-top:10px;">@syncMessage</p>
+}
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <p style="color:red; margin-top:10px;">@error</p>
+}
+
+@if (isLoading)
+{
+    <p style="margin-top:10px;">Cargando...</p>
+}
+else if (titles?.Any() == true)
+{
+    <ul style="margin-top:10px;">
+        @foreach (var t in titles)
+        {
+            <li>@t</li>
+        }
+    </ul>
+}
+else
+{
+    <p style="margin-top:10px;">Sin resultados.</p>
+}
+
+@code {
+    private int userId = 1;
+    private bool isLoading;
+    private string? error;
+    private List<string>? titles;
+    private string? syncMessage;
+    private async Task Consultar()
+    {
+        await Run(async () => titles = await Api.GetTitlesByUserIdAsync(userId));
+    }
+    private async Task Sincronizar()
+        => await Run(async () => syncMessage = await Api.SyncTitlesAsync());
+
+    private async Task Run(Func<Task> action)
+    {
+        try
+        {
+            error = null;
+            isLoading = true;
+            await action();
+        }
+        catch (Exception ex)
+        {
+            error = $"Error: {ex.Message}";
+            titles = new();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

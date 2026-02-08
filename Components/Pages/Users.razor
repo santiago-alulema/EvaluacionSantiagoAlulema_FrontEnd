@@ -1,0 +1,102 @@
+﻿@page "/counter"
+@rendermode InteractiveServer
+@using EvaluacionSantiagoAlulema_Front.Components.services
+@inject UsersApi Api
+
+<PageTitle>Users</PageTitle>
+
+<h1>Usuarios</h1>
+
+<div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <button class="btn btn-primary" @onclick="Cargar" disabled="@isLoading">Cargar usuarios</button>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <p style="color:red; margin-top:10px;">@error</p>
+}
+
+@if (isLoading)
+{
+    <p style="margin-top:10px;">Cargando...</p>
+}
+else if (users?.Any() == true)
+{
+    <table class="table" style="margin-top:10px;">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Ciudad</th>
+                <th>Teléfono</th>
+                <th>Empresa</th>
+                <th>Direccion</th>
+                <th>Latitud</th>
+                <th>Longitud</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in users)
+            {
+                <tr>
+                    <td>@u.Id</td>
+                    <td>@u.Name</td>
+                    <td>@u.Username</td>
+                    <td>@u.Email</td>
+                    <td>@u.Address?.City</td>
+                    <td>@u.Phone</td>
+                    <td>@u.Company?.Name</td>
+                    <td>@u.Address.Street</td>
+                    <td>@u.Address.Geo.Lat</td>
+                    <td>@u.Address.Geo.Lng</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p style="margin-top:10px;">Sin datos.</p>
+}
+
+@code {
+    private bool isLoading;
+    private string? error;
+    private List<EvaluacionSantiagoAlulema_Front.Components.Class.UserDto>? users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Si quieres que cargue automático al entrar, deja esto:
+        await Cargar();
+    }
+
+    private async Task Cargar()
+    {
+        await Run(async () =>
+        {
+            users = await Api.GetUsersAsync();
+        });
+    }
+
+    private async Task Run(Func<Task> action)
+    {
+        try
+        {
+            error = null;
+            isLoading = true;
+            await action();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            users = new();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
