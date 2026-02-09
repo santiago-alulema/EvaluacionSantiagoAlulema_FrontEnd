@@ -36,3 +36,7 @@ Antes de ejecutar el proyecto, configurar la URL base del backend en el archivo 
     "Timeout": 30
   }
 }
+```
+# Imagen Front
+<img width="1912" height="551" alt="image" src="https://github.com/user-attachments/assets/1fc80d29-681e-474c-886a-b3c833f8183a" />
+
